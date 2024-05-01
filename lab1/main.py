@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt
 
 np.random.seed(422)
 
+label_dict = {'alpha': 0, 'beta': 1, 'gamma': 2, 'delta': 3, 'epsilon': 4, 
+                  'dzeta': 5, 'eta': 6, 'teta': 7, 'yota': 8, 'kappa': 9, 
+                  'lambda': 10, 'mu': 11, 'nu': 12, 'xi': 13, 'omicron': 14,
+                  'fi': 15, 'ro': 16, 'sigma': 17, 'tau': 18, 'ipsilon': 19,
+                  'pi': 20, 'hi': 21, 'psi': 22, 'omega': 23}
+
+inverse_label_dict = {v: k for k, v in label_dict.items()}
 
 def get_object_bounds(image):
     # Преобразование изображения PIL в массив NumPy для обработки
@@ -40,6 +47,7 @@ def center_object(image):
 def load_images(folder):
     images = []
     labels = []
+    global label_dict
     for filename in os.listdir(folder):
         img_path = os.path.join(folder, filename)
         try:
@@ -48,7 +56,8 @@ def load_images(folder):
                 img = center_object(img)
                 img = img.resize((100, 100))
                 images.append(np.asarray(img).flatten() / 255.0)
-                label = int(filename[0])
+                label_name = filename.split('-')[0]  # Имя буквы из названия файла
+                label = label_dict[label_name]  # Получение соответствующего индекса
                 labels.append(label)
         except Exception as e:
             print(f"Ошибка загрузки {img_path}: {e}")
@@ -92,7 +101,7 @@ class TestCanvas(tk.Tk):
         self.canvas.pack()
         self.bind("<B1-Motion>", self.draw)
         self.image = Image.new("L", (280, 280), "white")
-        self.draw = ImageDraw.Draw(self.image)
+        self.picture_draw = ImageDraw.Draw(self.image)
         test_button = tk.Button(self, text="Проверить", command=self.test_image)
         test_button.pack(side=tk.BOTTOM)
         clear_button = tk.Button(self, text="Очистить", command=self.clear_canvas)
@@ -107,14 +116,14 @@ class TestCanvas(tk.Tk):
     def draw(self, event):
         x, y = event.x, event.y
         self.canvas.create_oval(x - 7, y - 7, x + 7, y + 7, fill="black")
-        self.draw.ellipse([x - 7, y - 7, x + 7, y + 7], fill="black")
+        self.picture_draw.ellipse([x - 7, y - 7, x + 7, y + 7], fill="black")
 
     def test_image(self):
         # Подготовка изображения для модели
         # inverted_image = ImageOps.invert(self.image)
         centered_image = center_object(self.image)
         inverted_image = centered_image.resize((100, 100))
-
+        global inverse_label_dict
         img_array = np.array(inverted_image) / 255.0
         img_array = img_array.flatten()
 
@@ -122,7 +131,7 @@ class TestCanvas(tk.Tk):
         if flag == None:
             messagebox.showinfo("Результат", f"Это не похоже не на одну из букв!")
         else:
-            messagebox.showinfo("Результат", f"Это похоже на букву {flag}!")
+            messagebox.showinfo("Результат", f"Это похоже на букву {inverse_label_dict[flag]}!")
         self.clear_canvas()
 
     def save_w(self):
@@ -132,7 +141,7 @@ class TestCanvas(tk.Tk):
     def clear_canvas(self):
         self.canvas.delete("all")
         self.image = Image.new("L", (280, 280), "white")
-        self.draw = ImageDraw.Draw(self.image)
+        self.picture_draw = ImageDraw.Draw(self.image)
 
     def research(self):
         folder_path = "test"
@@ -146,14 +155,15 @@ class TestCanvas(tk.Tk):
                 wrong_count += 1
         messagebox.showinfo(
             "Результат",
-            f"Кол-во ошибок:{wrong_count},процент ошибок:{(wrong_count/100)*100}",
+            f"Кол-во ошибок:{wrong_count},процент ошибок:{(wrong_count/480)*100}",
         )
 
     def graf(self):
-        fig, axes = plt.subplots(nrows=2, ncols=5, figsize=(20, 8))
+        global inverse_label_dict
+        fig, axes = plt.subplots(nrows=4, ncols=6, figsize=(20, 8))
         for i, ax in enumerate(axes.flat):
-            im = ax.imshow(weights[i].reshape((100, 100)), cmap="GnBu")
-            ax.set_title(f"Веса для класса {i}")
+            im = ax.imshow(weights[i].reshape((100, 100)), cmap="Greys")
+            ax.set_title(f"Веса для класса {inverse_label_dict[i]}")
         plt.tight_layout()
         plt.show()
 
@@ -163,7 +173,7 @@ if __name__ == "__main__":
     weights = np.random.uniform(
         -0.3, 0.3, (24, 10000)
     )  # Веса для 24 классов и изображений 100x100
-    learning_rate = 0.3
+    learning_rate = 0.01
     try:
         weights = np.load(f"weights-{learning_rate}.npy")
         print("Веса успешно загружены")
