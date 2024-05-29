@@ -89,7 +89,7 @@ class NumberProcessor():
             if epoch % 100 == 0:
                 print(f"Эпоха {epoch}, потери: {loss}")
             
-            if loss < 0.01:
+            if loss < 0.1:
                 break
             epoch += 1
         print(f"Обучение завершено после {epoch} эпох")
@@ -146,7 +146,7 @@ class TestCanvas(tk.Tk):
         self.picture_draw = ImageDraw.Draw(self.image)
 
     def research(self):
-        test_folder = "TestSamples2"
+        test_folder = "testing"
         re_images, re_labels = self.processor.load_images(test_folder)
         wrong_count = 0
         for img, label in zip(re_images, re_labels):
@@ -159,7 +159,7 @@ class TestCanvas(tk.Tk):
         )
 
 if __name__ == "__main__":
-    folder_path = "Samples3"
+    folder_path = "dataset"
     processor = NumberProcessor(folder_path)
     app = TestCanvas(processor)
     app.title("Распознавание чисел")
