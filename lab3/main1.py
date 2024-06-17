@@ -27,7 +27,7 @@ class SOM:
             distance = np.linalg.norm(np.array([winner_idx]) - np.array([i]))
             # Если нейрон находится в радиусе влияния
             if distance <= self.radius:
-                # Считаем влияние (функция Гаусса)
+                # Считаем влияние для более плавного обновления весов (функция Гаусса)
                 influence = np.exp(-distance**2 / (2 * (self.radius**2)))
                 # Обновляем веса текущего нейрона
                 self.weights[:, i] += self.learning_rate * influence * (x - self.weights[:, i])
