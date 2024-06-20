@@ -14,45 +14,45 @@ from PyQt5.QtGui import QPixmap, QImage, QFont
 from PyQt5.QtCore import Qt
 
 
-# Сама нейронка
+# Сама нейронка Хопфилда
 class HopfieldNetwork:
     def __init__(self, size):
-        self.size = size  # Задаем размер сети
-        self.weights = np.zeros((size, size))  # Инициализируем матрицу весов нулями
+        self.size = size  # Размер
+        self.weights = np.zeros((size, size))  # Веса
 
     def train(self, patterns):
-        for pattern in patterns:  # Для каждого паттерна
-            self.weights += np.outer(pattern, pattern)  # Обновляем матрицу весов
+        for pattern in patterns: 
+            self.weights += np.outer(pattern, pattern)  # Загрузка образов
         np.fill_diagonal(
             self.weights, 0
-        )  # Обнуляем диагональные элементы матрицы весов
+        )  
 
     def update(self, state):
-        return np.sign(np.dot(self.weights, state))  # Обновляем состояние сети
+        return np.sign(np.dot(self.weights, state))  # Обновляем состояние сети через пороговую функцию (тета ноль)
 
     def run(self, state):
-        previous_state = np.zeros_like(state)  # Инициализируем предыдущее состояние
-        flag = True  # Флаг для выхода из цикла
-        while flag:  # Пока состояние не стабилизируется
-            new_state = self.update(state)  # Обновляем состояние
+        previous_state = np.zeros_like(state)
+        flag = True 
+        while flag:
+            new_state = self.update(state)  
             if np.array_equal(
                 new_state, previous_state
-            ):  # Если состояние не изменилось
-                flag = False  # Выходим из цикла
-            previous_state = state  # Обновляем предыдущее состояние
-            state = new_state  # Устанавливаем новое состояние
-        return state  # Возвращаем стабилизированное состояние
+            ): 
+                flag = False  
+            previous_state = state  
+            state = new_state 
+        return state
 
     def unlearn(self, pattern):
         self.weights -= np.outer(
             pattern, pattern
-        )  # Обновляем матрицу весов, вычитая вклад паттерна
+        )
         np.fill_diagonal(
             self.weights, 0
-        )  # Обнуляем диагональные элементы матрицы весов
+        )
 
 
-# Функция для добавления шума в изображение
+# Зашумление
 def add_noise(image, noise_level=0.1):
     noisy_image = image.copy()
     num_noisy_pixels = int(noise_level * image.size)
@@ -61,7 +61,7 @@ def add_noise(image, noise_level=0.1):
     return noisy_image
 
 
-# Класс, реализующий графический интерфейс приложения
+# Недофронт
 class HopfieldApp(QWidget):
     def __init__(self, network):
         super().__init__()
